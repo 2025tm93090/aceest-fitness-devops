@@ -1,0 +1,116 @@
+# Strategy 3: Canary Release (80% Stable / 20% Canary)
+# Enables progressive deployment with gradual user exposure and real-time metric tracking
+
+# 1. STABLE RELEASE (80% Traffic - 4 Replicas)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aceest-stable
+  namespace: aceest-fitness
+  labels:
+    app: aceest-canary-app
+    track: stable
+spec:
+  replicas: 4
+  selector:
+    matchLabels:
+      app: aceest-canary-app
+      track: stable
+  template:
+    metadata:
+      labels:
+        app: aceest-canary-app
+        track: stable
+    spec:
+      containers:
+        - name: aceest-container
+          image: yourdockerhubuser/aceest-fitness:v1.0.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 5000
+          env:
+            - name: APP_VERSION
+              value: "v1.0.0-stable"
+            - name: DEPLOYMENT_STRATEGY
+              value: "Canary-Stable-80"
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 5000
+---
+# 2. CANARY RELEASE (20% Traffic - 1 Replica)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aceest-canary
+  namespace: aceest-fitness
+  labels:
+    app: aceest-canary-app
+    track: canary
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: aceest-canary-app
+      track: canary
+  template:
+    metadata:
+      labels:
+        app: aceest-canary-app
+        track: canary
+    spec:
+      containers:
+        - name: aceest-container
+          image: yourdockerhubuser/aceest-fitness:v2.0.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 5000
+          env:
+            - name: APP_VERSION
+              value: "v2.0.0-canary"
+            - name: DEPLOYMENT_STRATEGY
+              value: "Canary-20"
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 5000
+---
+# 3. CANARY SERVICE (Points to common label for 4:1 pod distribution)
+apiVersion: v1
+kind: Service
+metadata:
+  name: aceest-canary-service
+  namespace: aceest-fitness
+  labels:
+    app: aceest-canary-app
+spec:
+  type: NodePort
+  selector:
+    app: aceest-canary-app  # Selects both stable (4 pods) and canary (1 pod) -> 80% / 20%
+  ports:
+    - name: http
+      port: 80
+      targetPort: 5000
+      nodePort: 30082
+---
+# 4. OPTIONAL: NGINX INGRESS LAYER 7 CANARY TRAFFIC SPLIT
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: aceest-canary-ingress
+  namespace: aceest-fitness
+  annotations:
+    nginx.ingress.kubernetes.io/canary: "true"
+    nginx.ingress.kubernetes.io/canary-weight: "20"
+spec:
+  rules:
+    - host: gym.aceest.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: aceest-canary-service
+                port:
+                  number: 80

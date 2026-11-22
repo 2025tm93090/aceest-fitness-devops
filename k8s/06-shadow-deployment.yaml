@@ -1,0 +1,118 @@
+# Strategy 5: Shadow Deployment (Traffic Mirroring)
+# Mirrors live customer traffic to the shadow version for load & performance validation
+# The shadow version responses are discarded, ensuring zero risk to real gym users.
+
+# 1. LIVE PRODUCTION DEPLOYMENT (Processes user traffic & returns responses)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aceest-production
+  namespace: aceest-fitness
+  labels:
+    app: aceest-shadow-suite
+    role: production
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: aceest-shadow-suite
+      role: production
+  template:
+    metadata:
+      labels:
+        app: aceest-shadow-suite
+        role: production
+    spec:
+      containers:
+        - name: aceest-container
+          image: yourdockerhubuser/aceest-fitness:v2.0.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 5000
+          env:
+            - name: APP_VERSION
+              value: "v2.0.0-production"
+            - name: DEPLOYMENT_STRATEGY
+              value: "Shadow-Live"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: aceest-production-service
+  namespace: aceest-fitness
+spec:
+  selector:
+    app: aceest-shadow-suite
+    role: production
+  ports:
+    - name: http
+      port: 80
+      targetPort: 5000
+---
+# 2. SHADOW DEPLOYMENT (Receives mirrored traffic; responses discarded)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aceest-shadow
+  namespace: aceest-fitness
+  labels:
+    app: aceest-shadow-suite
+    role: shadow
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: aceest-shadow-suite
+      role: shadow
+  template:
+    metadata:
+      labels:
+        app: aceest-shadow-suite
+        role: shadow
+    spec:
+      containers:
+        - name: aceest-container
+          image: yourdockerhubuser/aceest-fitness:v3.0.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 5000
+          env:
+            - name: APP_VERSION
+              value: "v3.0.0-shadow"
+            - name: DEPLOYMENT_STRATEGY
+              value: "Shadow-Target"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: aceest-shadow-service
+  namespace: aceest-fitness
+spec:
+  selector:
+    app: aceest-shadow-suite
+    role: shadow
+  ports:
+    - name: http
+      port: 80
+      targetPort: 5000
+---
+# 3. NGINX INGRESS WITH TRAFFIC MIRRORING TO SHADOW SERVICE
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: aceest-shadow-ingress
+  namespace: aceest-fitness
+  annotations:
+    nginx.ingress.kubernetes.io/mirror-target: "http://aceest-shadow-service.aceest-fitness.svc.cluster.local:80"
+spec:
+  rules:
+    - host: live.aceest.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: aceest-production-service
+                port:
+                  number: 80
