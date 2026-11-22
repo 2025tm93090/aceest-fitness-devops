@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}ACEest Functional Fitness & Gym{% endblock %}</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --ace-gold: #d4af37;
+            --ace-dark: #1a1a1a;
+            --ace-card-bg: #242424;
+            --ace-border: #383838;
+            --ace-text: #f5f5f5;
+            --ace-muted: #a0a0a0;
+        }
+        body {
+            background-color: var(--ace-dark);
+            color: var(--ace-text);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .navbar-brand-gold {
+            background-color: var(--ace-gold);
+            color: #000 !important;
+            font-weight: 800;
+            letter-spacing: 1px;
+            padding: 8px 18px;
+            border-radius: 4px;
+        }
+        .nav-link {
+            color: #ddd !important;
+            font-weight: 500;
+            margin-right: 12px;
+            transition: color 0.2s;
+        }
+        .nav-link:hover, .nav-link.active {
+            color: var(--ace-gold) !important;
+        }
+        .card-ace {
+            background-color: var(--ace-card-bg);
+            border: 1px solid var(--ace-border);
+            border-radius: 8px;
+            color: var(--ace-text);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+        }
+        .card-header-ace {
+            background-color: rgba(212, 175, 55, 0.1);
+            border-bottom: 1px solid var(--ace-border);
+            color: var(--ace-gold);
+            font-weight: 700;
+        }
+        .btn-gold {
+            background-color: var(--ace-gold);
+            color: #000;
+            font-weight: 700;
+            border: none;
+            transition: all 0.2s;
+        }
+        .btn-gold:hover {
+            background-color: #e5c358;
+            color: #000;
+            transform: translateY(-1px);
+        }
+        .badge-version {
+            background-color: #333;
+            color: var(--ace-gold);
+            border: 1px solid var(--ace-gold);
+            font-family: monospace;
+            font-size: 0.85rem;
+            padding: 5px 10px;
+        }
+        .footer {
+            background-color: #111;
+            border-top: 1px solid var(--ace-border);
+            color: var(--ace-muted);
+            margin-top: auto;
+            padding: 16px 0;
+            font-size: 0.9rem;
+        }
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    <!-- Top Brand Header Bar -->
+    <div style="background-color: var(--ace-gold); color: #000; padding: 12px 0;" class="text-center shadow-sm">
+        <h2 class="mb-0 fw-bold" style="letter-spacing: 2px;">
+            <i class="fa-solid fa-dumbbell me-2"></i>ACEest FUNCTIONAL FITNESS SYSTEM
+        </h2>
+        <small class="fw-semibold">Digital Transformation & Automated DevOps Delivery Platform</small>
+    </div>
+
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark border-bottom border-secondary">
+        <div class="container-fluid px-4">
+            <a class="navbar-brand text-warning fw-bold" href="/">
+                <i class="fa-solid fa-fire me-1"></i> ACEest
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/"><i class="fa-solid fa-house me-1"></i> Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/clients"><i class="fa-solid fa-users me-1"></i> Clients</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/workouts"><i class="fa-solid fa-dumbbell me-1"></i> Workouts</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/analytics"><i class="fa-solid fa-chart-line me-1"></i> Analytics & AI</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-warning" href="/deployments"><i class="fa-solid fa-cubes me-1"></i> K8s Deployments</a>
+                    </li>
+                </ul>
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge badge-version">
+                        <i class="fa-solid fa-code-branch me-1"></i> {{ version|default('v3.0.0') }}
+                    </span>
+                    <a href="/health" class="btn btn-sm btn-outline-success" target="_blank" title="Health Check">
+                        <i class="fa-solid fa-heart-pulse me-1"></i> Health
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content Container -->
+    <div class="container-fluid px-4 py-4 flex-grow-1">
+        {% block content %}{% endblock %}
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer text-center">
+        <div class="container">
+            <span>&copy; 2026 ACEest Fitness & Gym | BITS Pilani DevOps CI/CD Implementation (CSIZG514/SEZG514)</span>
+            <div class="small mt-1 text-secondary">
+                Integrated with Git, Jenkins, Pytest, SonarQube, Docker, and Kubernetes
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

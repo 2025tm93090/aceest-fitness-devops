@@ -1,0 +1,281 @@
+{% extends "base.html" %}
+
+{% block title %}Progress Analytics & AI - ACEest Fitness{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <!-- Top Client Filter -->
+    <div class="col-12">
+        <div class="card card-ace">
+            <div class="card-body d-flex flex-wrap align-items-center justify-content-between gap-3">
+                <div class="d-flex align-items-center gap-2">
+                    <label class="fw-bold text-warning mb-0"><i class="fa-solid fa-user me-1"></i>Select Client:</label>
+                    <select id="analyticsClientSelect" class="form-select bg-dark text-white border-secondary" style="width: 280px;">
+                        <option value="">-- Choose Member --</option>
+                        {% for c in clients %}
+                        <option value="{{ c.name }}">{{ c.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <button class="btn btn-outline-warning btn-sm" data-bs-toggle="modal" data-bs-target="#progressModal">
+                        <i class="fa-solid fa-plus me-1"></i> Log Weekly Adherence
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Left Column: Chart.js Adherence Tracking -->
+    <div class="col-lg-7">
+        <div class="card card-ace h-100">
+            <div class="card-header card-header-ace d-flex justify-content-between align-items-center">
+                <span><i class="fa-solid fa-chart-column me-2"></i>Weekly Adherence Progress (%)</span>
+                <span id="chartClientLabel" class="badge bg-dark border border-warning text-warning">All Clients</span>
+            </div>
+            <div class="card-body">
+                <canvas id="adherenceChart" style="max-height: 350px;"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column: BMI & Health Risk Assessment -->
+    <div class="col-lg-5">
+        <div class="card card-ace mb-4">
+            <div class="card-header card-header-ace">
+                <i class="fa-solid fa-heart-pulse me-2"></i>BMI & Health Risk Engine
+            </div>
+            <div class="card-body">
+                <div class="row g-2 mb-3">
+                    <div class="col-6">
+                        <label class="form-label small text-secondary">Weight (kg)</label>
+                        <input type="number" step="0.1" id="bmiWeight" class="form-control bg-dark text-white border-secondary" placeholder="75">
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label small text-secondary">Height (cm)</label>
+                        <input type="number" step="0.1" id="bmiHeight" class="form-control bg-dark text-white border-secondary" placeholder="175">
+                    </div>
+                </div>
+                <button type="button" id="calcBmiBtn" class="btn btn-gold w-100 mb-3">
+                    <i class="fa-solid fa-stethoscope me-1"></i> Analyze Health Profile
+                </button>
+                <div id="bmiResultBox" class="p-3 bg-dark rounded border border-warning d-none">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="text-secondary small">Calculated BMI:</span>
+                        <span id="bmiScore" class="fs-4 fw-bold text-warning">24.5</span>
+                    </div>
+                    <div>Classification: <strong id="bmiCat" class="text-light">Normal</strong></div>
+                    <div class="small text-secondary mt-1" id="bmiRisk"></div>
+                    <div class="mt-2 text-warning small">Recommended Focus: <strong id="bmiRec"></strong></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- AI Workout Generator Card -->
+        <div class="card card-ace">
+            <div class="card-header card-header-ace">
+                <i class="fa-solid fa-wand-magic-sparkles me-2"></i>AI Workout Schedule Generator
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label class="form-label small text-secondary">Experience Level</label>
+                    <select id="aiExperience" class="form-select bg-dark text-white border-secondary">
+                        <option value="beginner">Beginner (3 Days/Week)</option>
+                        <option value="intermediate" selected>Intermediate (4 Days/Week)</option>
+                        <option value="advanced">Advanced (5 Days/Week)</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small text-secondary">Goal Focus</label>
+                    <select id="aiFocus" class="form-select bg-dark text-white border-secondary">
+                        <option value="Fat Loss (FL)">Fat Loss & Conditioning</option>
+                        <option value="Muscle Gain (MG)">Muscle Hypertrophy & Strength</option>
+                        <option value="Beginner (BG)">Functional Full Body</option>
+                    </select>
+                </div>
+                <button type="button" id="generateAiBtn" class="btn btn-gold w-100 mb-3">
+                    <i class="fa-solid fa-robot me-1"></i> Generate AI Program
+                </button>
+                <div id="aiScheduleBox" class="d-none">
+                    <div class="table-responsive" style="max-height: 250px;">
+                        <table class="table table-sm table-dark table-striped small mb-0">
+                            <thead><tr><th>Day</th><th>Exercise</th><th>Sets</th><th>Reps</th></tr></thead>
+                            <tbody id="aiScheduleBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Log Progress Modal -->
+<div class="modal fade" id="progressModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content card-ace">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title text-warning"><i class="fa-solid fa-chart-line me-2"></i>Log Weekly Adherence</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="progressForm">
+                    <div class="mb-3">
+                        <label class="form-label text-light">Client</label>
+                        <select id="progClient" class="form-select bg-dark text-white border-secondary" required>
+                            {% for c in clients %}
+                            <option value="{{ c.name }}">{{ c.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-light">Adherence (0 - 100%)</label>
+                        <input type="number" id="progValue" class="form-control bg-dark text-white border-secondary" min="0" max="100" value="85" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer border-secondary">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-gold" onclick="saveProgressModal()">Save Progress</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let adherenceChart = null;
+
+    function initChart(labels, values) {
+        const ctx = document.getElementById('adherenceChart').getContext('2d');
+        if (adherenceChart) adherenceChart.destroy();
+
+        adherenceChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Adherence %',
+                    data: values,
+                    backgroundColor: 'rgba(212, 175, 55, 0.8)',
+                    borderColor: '#d4af37',
+                    borderWidth: 1.5,
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100,
+                        ticks: { color: '#ccc' },
+                        grid: { color: '#333' }
+                    },
+                    x: {
+                        ticks: { color: '#ccc' },
+                        grid: { color: '#222' }
+                    }
+                },
+                plugins: {
+                    legend: { labels: { color: '#fff' } }
+                }
+            }
+        });
+    }
+
+    // Load initial chart
+    const initialClients = {{ clients|tojson }};
+    const initLabels = initialClients.map(c => c.name);
+    const initValues = initialClients.map(c => c.target_adherence || 80);
+    initChart(initLabels, initValues);
+
+    document.getElementById("analyticsClientSelect").addEventListener("change", function() {
+        const client = this.value;
+        const label = document.getElementById("chartClientLabel");
+        if (!client) {
+            label.textContent = "All Clients";
+            initChart(initLabels, initValues);
+            return;
+        }
+
+        label.textContent = client;
+        fetch(`/api/progress/${encodeURIComponent(client)}`)
+        .then(res => res.json())
+        .then(data => {
+            const list = data.progress || [];
+            if (list.length === 0) {
+                initChart(["Week 1"], [0]);
+                return;
+            }
+            const weeks = list.map(p => p.week);
+            const vals = list.map(p => p.adherence);
+            initChart(weeks, vals);
+        });
+    });
+
+    document.getElementById("calcBmiBtn").addEventListener("click", function() {
+        const weight = parseFloat(document.getElementById("bmiWeight").value);
+        const height = parseFloat(document.getElementById("bmiHeight").value);
+        if (!weight || !height) {
+            alert("Please enter both weight and height.");
+            return;
+        }
+
+        fetch("/api/calculate-bmi", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({ weight: weight, height: height })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.error) {
+                alert("Error: " + data.error);
+                return;
+            }
+            document.getElementById("bmiScore").textContent = data.bmi;
+            document.getElementById("bmiCat").textContent = data.category;
+            document.getElementById("bmiRisk").textContent = data.health_risk;
+            document.getElementById("bmiRec").textContent = data.recommended_program;
+            document.getElementById("bmiResultBox").classList.remove("d-none");
+        });
+    });
+
+    document.getElementById("generateAiBtn").addEventListener("click", function() {
+        const exp = document.getElementById("aiExperience").value;
+        const focus = document.getElementById("aiFocus").value;
+
+        fetch("/api/generate-program", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({ experience_level: exp, program_focus: focus })
+        })
+        .then(res => res.json())
+        .then(data => {
+            const tbody = document.getElementById("aiScheduleBody");
+            tbody.innerHTML = "";
+            (data.schedule || []).forEach(item => {
+                const tr = document.createElement("tr");
+                tr.innerHTML = `<td class="text-warning fw-bold">${item.day}</td><td>${item.exercise}</td><td>${item.sets}</td><td>${item.reps}</td>`;
+                tbody.appendChild(tr);
+            });
+            document.getElementById("aiScheduleBox").classList.remove("d-none");
+        });
+    });
+
+    function saveProgressModal() {
+        const client = document.getElementById("progClient").value;
+        const val = parseInt(document.getElementById("progValue").value);
+        fetch("/api/progress", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({ client_name: client, adherence: val })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.error) alert(data.error);
+            else location.reload();
+        });
+    }
+</script>
+{% endblock %}

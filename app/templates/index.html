@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - ACEest Fitness & Gym{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <!-- Top System Metrics Banner -->
+    <div class="col-12">
+        <div class="card card-ace border-warning">
+            <div class="card-body d-flex flex-wrap align-items-center justify-content-between py-2">
+                <div>
+                    <span class="text-warning fw-bold"><i class="fa-solid fa-server me-2"></i>Active Release:</span>
+                    <span class="badge bg-dark border border-warning text-warning fs-6 px-3">{{ version }}</span>
+                    <span class="ms-3 text-secondary">| Strategy:</span>
+                    <span class="badge bg-primary fs-6 px-3">{{ strategy }}</span>
+                    {% if color_variant %}
+                    <span class="badge bg-info text-dark fs-6 ms-2">Slot: {{ color_variant|upper }}</span>
+                    {% endif %}
+                </div>
+                <div class="d-flex gap-3 text-secondary small">
+                    <span><i class="fa-solid fa-user-group text-warning me-1"></i> Max Capacity: <strong>150 Users</strong></span>
+                    <span><i class="fa-solid fa-ruler-combined text-warning me-1"></i> Facility: <strong>10,000 sq ft</strong></span>
+                    <span><i class="fa-solid fa-scale-balanced text-warning me-1"></i> Break-Even: <strong>250 Members</strong></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Left Column: Program Selector & Calorie Estimator -->
+    <div class="col-lg-4">
+        <div class="card card-ace h-100">
+            <div class="card-header card-header-ace">
+                <i class="fa-solid fa-list-check me-2"></i>Select Fitness Program
+            </div>
+            <div class="card-body">
+                <label for="programSelect" class="form-label text-warning fw-semibold">Target Training Program:</label>
+                <select id="programSelect" class="form-select bg-dark text-white border-secondary mb-3">
+                    {% for name, data in programs.items() %}
+                    <option value="{{ name }}">{{ name }}</option>
+                    {% endfor %}
+                </select>
+
+                <hr class="border-secondary">
+
+                <h5 class="text-warning mb-3"><i class="fa-solid fa-calculator me-2"></i>Quick Calorie Estimator</h5>
+                <div class="mb-3">
+                    <label class="form-label small">Body Weight (kg):</label>
+                    <input type="number" id="quickWeight" class="form-control bg-dark text-white border-secondary" placeholder="e.g. 75" value="75">
+                </div>
+                <button type="button" id="calcCalorieBtn" class="btn btn-gold w-100 mb-3">
+                    <i class="fa-solid fa-fire-flame-curved me-1"></i> Estimate Target Calories
+                </button>
+                <div id="calorieResultBox" class="alert alert-dark border-warning d-none text-center">
+                    <div class="small text-secondary">Target Daily Caloric Intake:</div>
+                    <span id="calorieValue" class="fs-4 fw-bold text-warning">0</span> <span class="text-warning">kcal/day</span>
+                </div>
+
+                <hr class="border-secondary">
+                <div class="small text-secondary">
+                    <div class="fw-bold text-light mb-1">Facility Operations (Coimbatore HQ):</div>
+                    Operating Hours: 05:30 AM - 10:00 PM<br>
+                    Strength Floor: Eleiko & Rogue Barbells<br>
+                    Metabolic Zone: Concept2 Rowers & Assault Bikes
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column: Program Details (Workout & Nutrition Plan) -->
+    <div class="col-lg-8">
+        <div class="card card-ace mb-4">
+            <div class="card-header card-header-ace d-flex justify-content-between align-items-center">
+                <span><i class="fa-solid fa-dumbbell me-2"></i>Weekly Workout Chart</span>
+                <span id="programBadge" class="badge bg-danger fs-6">Fat Loss</span>
+            </div>
+            <div class="card-body">
+                <p id="programDesc" class="text-secondary mb-2 fst-italic"></p>
+                <pre id="workoutDisplay" class="bg-dark p-3 rounded text-white border border-secondary" style="font-family: Consolas, monospace; font-size: 0.95rem; line-height: 1.6;"></pre>
+            </div>
+        </div>
+
+        <div class="card card-ace">
+            <div class="card-header card-header-ace">
+                <i class="fa-solid fa-utensils me-2"></i>Daily Nutrition Plan (Tamil Nadu Context)
+            </div>
+            <div class="card-body">
+                <pre id="dietDisplay" class="bg-dark p-3 rounded text-white border border-secondary" style="font-family: Consolas, monospace; font-size: 0.95rem; line-height: 1.6;"></pre>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const programsData = {{ programs|tojson }};
+
+    function updateProgramView() {
+        const selected = document.getElementById("programSelect").value;
+        const data = programsData[selected];
+        if (!data) return;
+
+        const badge = document.getElementById("programBadge");
+        badge.textContent = selected;
+        badge.style.backgroundColor = data.color;
+
+        document.getElementById("programDesc").textContent = data.description;
+        document.getElementById("workoutDisplay").textContent = data.workout;
+        document.getElementById("dietDisplay").textContent = data.diet;
+    }
+
+    document.getElementById("programSelect").addEventListener("change", updateProgramView);
+    updateProgramView();
+
+    document.getElementById("calcCalorieBtn").addEventListener("click", function() {
+        const weight = parseFloat(document.getElementById("quickWeight").value);
+        const prog = document.getElementById("programSelect").value;
+        if (!weight || weight <= 0) {
+            alert("Please enter a valid weight in kg.");
+            return;
+        }
+        fetch("/api/calculate-calories", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({ weight: weight, program: prog })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.calories) {
+                document.getElementById("calorieValue").textContent = data.calories;
+                document.getElementById("calorieResultBox").classList.remove("d-none");
+            }
+        })
+        .catch(err => console.error(err));
+    });
+</script>
+{% endblock %}

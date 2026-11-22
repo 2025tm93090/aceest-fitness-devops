@@ -1,0 +1,194 @@
+{% extends "base.html" %}
+
+{% block title %}DevOps Deployment Strategies - ACEest Fitness{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <!-- Top Overview Header -->
+    <div class="col-12">
+        <div class="card card-ace border-warning">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <div>
+                        <h3 class="text-warning mb-1"><i class="fa-solid fa-cubes me-2"></i>Kubernetes Progressive Deployment Engine</h3>
+                        <p class="text-secondary mb-0 small">
+                            Production deployment topologies implemented for ACEest Fitness & Gym (CSIZG514 / SEZG514 Assignment 2).
+                        </p>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <span class="badge bg-dark border border-warning text-warning p-2">
+                            Strategy: <strong>{{ strategy }}</strong>
+                        </span>
+                        <span class="badge bg-secondary p-2">
+                            Release: <strong>{{ version }}</strong>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Strategy 1: Rolling Update -->
+    <div class="col-lg-6">
+        <div class="card card-ace h-100">
+            <div class="card-header card-header-ace d-flex justify-content-between align-items-center">
+                <span><i class="fa-solid fa-rotate me-2"></i>1. Rolling Update (Default Zero-Downtime)</span>
+                <span class="badge bg-success">Active Standard</span>
+            </div>
+            <div class="card-body">
+                <p class="text-secondary small">
+                    Incrementally replaces running application pods with new version pods using Kubernetes Deployment parameters <code>maxSurge: 1</code> and <code>maxUnavailable: 0</code>. Ensures continuous availability during fitness class peak hours.
+                </p>
+                <div class="p-3 bg-dark rounded border border-secondary mb-3">
+                    <div class="small text-secondary mb-1">Pod Lifecycle Transition:</div>
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="badge bg-secondary">Pod v1 (Running)</span>
+                        <i class="fa-solid fa-arrow-right text-warning"></i>
+                        <span class="badge bg-primary">Pod v2 (Starting)</span>
+                        <i class="fa-solid fa-arrow-right text-warning"></i>
+                        <span class="badge bg-success">Pod v2 (Ready)</span>
+                        <i class="fa-solid fa-arrow-right text-warning"></i>
+                        <span class="badge bg-danger">Pod v1 (Terminating)</span>
+                    </div>
+                </div>
+                <div class="small font-monospace text-secondary">
+                    Manifest: <code>k8s/02-rolling-update.yaml</code><br>
+                    Rollback Command: <code>kubectl rollout undo deployment/aceest-app</code>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Strategy 2: Blue-Green Deployment -->
+    <div class="col-lg-6">
+        <div class="card card-ace h-100">
+            <div class="card-header card-header-ace d-flex justify-content-between align-items-center">
+                <span><i class="fa-solid fa-shuffle me-2"></i>2. Blue-Green Deployment</span>
+                <span class="badge bg-primary">Atomic Switch</span>
+            </div>
+            <div class="card-body">
+                <p class="text-secondary small">
+                    Maintains two identical production environments: <strong>Blue (Active)</strong> and <strong>Green (Staging/New Version)</strong>. Traffic is routed via a single Kubernetes Service selector switch, achieving zero-downtime release and instant rollback.
+                </p>
+                <div class="row g-2 mb-3 text-center">
+                    <div class="col-6">
+                        <div class="p-2 rounded border {% if color_variant == 'blue' %}border-info bg-dark text-info{% else %}border-secondary bg-dark text-secondary{% endif %}">
+                            <strong>BLUE SLOT</strong><br>
+                            <small>v1.0.0 (Port 5000)</small>
+                            <div class="mt-1">{% if color_variant == 'blue' %}<span class="badge bg-info text-dark">LIVE TRAFFIC</span>{% else %}<span class="badge bg-secondary">IDLE</span>{% endif %}</div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="p-2 rounded border {% if color_variant == 'green' %}border-success bg-dark text-success{% else %}border-secondary bg-dark text-secondary{% endif %}">
+                            <strong>GREEN SLOT</strong><br>
+                            <small>v2.0.0 / v3.0.0</small>
+                            <div class="mt-1">{% if color_variant == 'green' %}<span class="badge bg-success">LIVE TRAFFIC</span>{% else %}<span class="badge bg-secondary">IDLE / PREVIEW</span>{% endif %}</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="small font-monospace text-secondary">
+                    Manifest: <code>k8s/03-blue-green.yaml</code><br>
+                    Switch Script: <code>scripts/switch_blue_green.sh</code>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Strategy 3: Canary Release -->
+    <div class="col-lg-6">
+        <div class="card card-ace h-100">
+            <div class="card-header card-header-ace d-flex justify-content-between align-items-center">
+                <span><i class="fa-solid fa-dove me-2"></i>3. Canary Release</span>
+                <span class="badge bg-warning text-dark">Progressive Risk Reduction</span>
+            </div>
+            <div class="card-body">
+                <p class="text-secondary small">
+                    Routes a small percentage (e.g. 10% - 20%) of real gym user traffic to the new version canary pods while maintaining 80% on stable. Metrics and error rates are monitored before routing 100% traffic.
+                </p>
+                <div class="p-3 bg-dark rounded border border-secondary mb-3">
+                    <div class="d-flex justify-content-between small text-secondary mb-1">
+                        <span>Stable v1 (80% Traffic)</span>
+                        <span>Canary v2 (20% Traffic)</span>
+                    </div>
+                    <div class="progress" style="height: 20px;">
+                        <div class="progress-bar bg-info" style="width: 80%;">4 Pods (80%)</div>
+                        <div class="progress-bar bg-warning text-dark fw-bold" style="width: 20%;">1 Pod (20%)</div>
+                    </div>
+                </div>
+                <div class="small font-monospace text-secondary">
+                    Manifest: <code>k8s/04-canary.yaml</code><br>
+                    Traffic split via Pod replica ratios or NGINX Ingress annotations.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Strategy 4: A/B Testing -->
+    <div class="col-lg-6">
+        <div class="card card-ace h-100">
+            <div class="card-header card-header-ace d-flex justify-content-between align-items-center">
+                <span><i class="fa-solid fa-code-compare me-2"></i>4. A/B Testing</span>
+                <span class="badge bg-info text-dark">Data-Driven Experimentation</span>
+            </div>
+            <div class="card-body">
+                <p class="text-secondary small">
+                    Routes user requests based on HTTP request headers (e.g. <code>X-Experiment: variant-b</code>) or session cookies to evaluate conversion on the new AI workout recommendation engine versus traditional program lists.
+                </p>
+                <div class="p-3 bg-dark rounded border border-secondary mb-3">
+                    <div class="small text-secondary mb-1">Layer 7 Ingress Traffic Routing:</div>
+                    <ul class="mb-0 small text-light ps-3">
+                        <li><strong>Variant A (Control):</strong> Standard Program Catalog (General traffic)</li>
+                        <li><strong>Variant B (Treatment):</strong> AI Personalized Program Engine (Tagged Users)</li>
+                    </ul>
+                </div>
+                <div class="small font-monospace text-secondary">
+                    Manifest: <code>k8s/05-ab-testing.yaml</code> (NGINX Ingress Header Matching)
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Strategy 5: Shadow Deployment -->
+    <div class="col-12">
+        <div class="card card-ace">
+            <div class="card-header card-header-ace d-flex justify-content-between align-items-center">
+                <span><i class="fa-solid fa-ghost me-2"></i>5. Shadow Deployment (Traffic Mirroring)</span>
+                <span class="badge bg-secondary">Zero User Impact</span>
+            </div>
+            <div class="card-body">
+                <p class="text-secondary small">
+                    Duplicates incoming production requests in real-time and forwards a mirror copy to the shadow version deployment without returning shadow responses to end users. Validates peak load performance, database query latency, and concurrency stability before official release.
+                </p>
+                <div class="p-3 bg-dark rounded border border-secondary">
+                    <div class="row align-items-center text-center">
+                        <div class="col-md-3">
+                            <span class="badge bg-primary p-2">Client Request</span>
+                        </div>
+                        <div class="col-md-1">
+                            <i class="fa-solid fa-arrow-right text-warning"></i>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="p-2 border border-warning rounded">
+                                <strong class="text-warning">Production Pod (v1)</strong><br>
+                                <small class="text-success">&check; Response returned to User</small>
+                            </div>
+                        </div>
+                        <div class="col-md-1">
+                            <i class="fa-solid fa-clone text-info"></i>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="p-2 border border-secondary rounded">
+                                <strong class="text-secondary">Shadow Pod (v2)</strong><br>
+                                <small class="text-muted">&times; Response discarded</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="small font-monospace text-secondary mt-2">
+                    Manifest: <code>k8s/06-shadow-deployment.yaml</code>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

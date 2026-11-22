@@ -1,0 +1,216 @@
+{% extends "base.html" %}
+
+{% block title %}Workouts & Exercises - ACEest Fitness{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <div class="col-12 d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div>
+            <h3 class="text-warning mb-0"><i class="fa-solid fa-dumbbell me-2"></i>Workout Sessions & Exercise Log</h3>
+            <span class="text-secondary small">Log daily functional training sessions, load progression, and athlete performance</span>
+        </div>
+        <div>
+            <button class="btn btn-gold" data-bs-toggle="modal" data-bs-target="#workoutModal">
+                <i class="fa-solid fa-plus me-1"></i> Log New Workout
+            </button>
+        </div>
+    </div>
+
+    <!-- Client Selection Filter -->
+    <div class="col-md-4">
+        <div class="card card-ace">
+            <div class="card-header card-header-ace">
+                <i class="fa-solid fa-user-check me-2"></i>Select Member
+            </div>
+            <div class="card-body">
+                <select id="workoutClientSelect" class="form-select bg-dark text-white border-secondary mb-3">
+                    <option value="">-- Choose a Client --</option>
+                    {% for c in clients %}
+                    <option value="{{ c.name }}">{{ c.name }} ({{ c.program }})</option>
+                    {% endfor %}
+                </select>
+                <div id="clientMetaBox" class="p-3 bg-dark rounded border border-secondary text-secondary small d-none">
+                    <div>Enrolled: <strong id="cProgram" class="text-warning"></strong></div>
+                    <div>Target Cal: <strong id="cCalories" class="text-white"></strong></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Workout History Container -->
+    <div class="col-md-8">
+        <div class="card card-ace">
+            <div class="card-header card-header-ace d-flex justify-content-between align-items-center">
+                <span><i class="fa-solid fa-clock-rotate-left me-2"></i>Session History</span>
+                <span id="sessionCountBadge" class="badge bg-secondary">0 Sessions</span>
+            </div>
+            <div class="card-body" id="workoutListContainer">
+                <div class="text-center py-5 text-secondary">
+                    <i class="fa-solid fa-arrow-left fa-2x mb-3 text-warning"></i>
+                    <p>Select a client on the left to view logged workouts and exercise sets.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Log Workout Modal -->
+<div class="modal fade" id="workoutModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content card-ace">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title text-warning"><i class="fa-solid fa-heart-pulse me-2"></i>Log Workout Session</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="workoutForm">
+                    <div class="mb-3">
+                        <label class="form-label text-light">Client *</label>
+                        <select id="wClient" class="form-select bg-dark text-white border-secondary" required>
+                            {% for c in clients %}
+                            <option value="{{ c.name }}">{{ c.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="form-label text-light">Date</label>
+                            <input type="date" id="wDate" class="form-control bg-dark text-white border-secondary">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label text-light">Workout Type</label>
+                            <select id="wType" class="form-select bg-dark text-white border-secondary">
+                                <option value="Strength">Strength</option>
+                                <option value="Hypertrophy">Hypertrophy</option>
+                                <option value="Conditioning">Conditioning / MetCon</option>
+                                <option value="Mixed">Mixed</option>
+                                <option value="Mobility">Mobility & Recovery</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-light">Duration (Minutes)</label>
+                        <input type="number" id="wDuration" class="form-control bg-dark text-white border-secondary" value="60">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-light">Notes</label>
+                        <input type="text" id="wNotes" class="form-control bg-dark text-white border-secondary" placeholder="Felt strong, clean squat depth">
+                    </div>
+
+                    <h6 class="text-warning mt-4"><i class="fa-solid fa-list me-1"></i>Primary Exercise</h6>
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <label class="form-label small text-secondary">Exercise Name</label>
+                            <input type="text" id="exName" class="form-control bg-dark text-white border-secondary" placeholder="Back Squat">
+                        </div>
+                        <div class="col-2">
+                            <label class="form-label small text-secondary">Sets</label>
+                            <input type="number" id="exSets" class="form-control bg-dark text-white border-secondary" value="5">
+                        </div>
+                        <div class="col-2">
+                            <label class="form-label small text-secondary">Reps</label>
+                            <input type="number" id="exReps" class="form-control bg-dark text-white border-secondary" value="5">
+                        </div>
+                        <div class="col-2">
+                            <label class="form-label small text-secondary">Kg</label>
+                            <input type="number" step="0.5" id="exWeight" class="form-control bg-dark text-white border-secondary" value="80">
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer border-secondary">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-gold" onclick="saveWorkoutModal()">Save Workout</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.getElementById("wDate").value = new Date().toISOString().split('T')[0];
+
+    document.getElementById("workoutClientSelect").addEventListener("change", function() {
+        const client = this.value;
+        const container = document.getElementById("workoutListContainer");
+        const countBadge = document.getElementById("sessionCountBadge");
+        if (!client) {
+            container.innerHTML = '<div class="text-center py-5 text-secondary"><p>Select a client.</p></div>';
+            countBadge.textContent = "0 Sessions";
+            return;
+        }
+
+        fetch(`/api/workouts/${encodeURIComponent(client)}`)
+        .then(res => res.json())
+        .then(data => {
+            const list = data.workouts || [];
+            countBadge.textContent = `${list.length} Sessions`;
+            if (list.length === 0) {
+                container.innerHTML = `<div class="text-center py-5 text-secondary"><p>No workouts recorded yet for ${client}.</p></div>`;
+                return;
+            }
+
+            let html = '<div class="d-flex flex-column gap-3">';
+            list.forEach(w => {
+                html += `
+                <div class="p-3 bg-dark rounded border border-secondary">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div>
+                            <span class="badge bg-warning text-dark fw-bold">${w.workout_type}</span>
+                            <span class="ms-2 fw-semibold text-white">${w.date}</span>
+                            <span class="ms-2 text-secondary small">(${w.duration_min} mins)</span>
+                        </div>
+                        <span class="text-secondary small fst-italic">${w.notes || ''}</span>
+                    </div>`;
+                if (w.exercises && w.exercises.length > 0) {
+                    html += `
+                    <div class="mt-2 table-responsive">
+                        <table class="table table-sm table-dark table-bordered mb-0 small">
+                            <thead><tr><th>Exercise</th><th>Sets</th><th>Reps</th><th>Weight</th></tr></thead>
+                            <tbody>`;
+                    w.exercises.forEach(e => {
+                        html += `<tr><td>${e.name}</td><td>${e.sets}</td><td>${e.reps}</td><td>${e.weight} kg</td></tr>`;
+                    });
+                    html += `</tbody></table></div>`;
+                }
+                html += `</div>`;
+            });
+            html += '</div>';
+            container.innerHTML = html;
+        });
+    });
+
+    function saveWorkoutModal() {
+        const client = document.getElementById("wClient").value;
+        const exName = document.getElementById("exName").value.trim();
+        const payload = {
+            client_name: client,
+            date: document.getElementById("wDate").value,
+            workout_type: document.getElementById("wType").value,
+            duration_min: parseInt(document.getElementById("wDuration").value) || 60,
+            notes: document.getElementById("wNotes").value,
+            exercises: exName ? [{
+                name: exName,
+                sets: parseInt(document.getElementById("exSets").value) || 3,
+                reps: parseInt(document.getElementById("exReps").value) || 10,
+                weight: parseFloat(document.getElementById("exWeight").value) || 0
+            }] : []
+        };
+
+        fetch("/api/workouts", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify(payload)
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.error) {
+                alert("Error: " + data.error);
+            } else {
+                location.reload();
+            }
+        });
+    }
+</script>
+{% endblock %}
