@@ -1,0 +1,73 @@
+version: "3.8"
+
+services:
+  # ACEest Fitness Flask Application
+  aceest-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: aceest-fitness:v3.0.0
+    container_name: aceest-fitness-app
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      - APP_VERSION=v3.0.0
+      - APP_ENVIRONMENT=development
+      - DEPLOYMENT_STRATEGY=DockerCompose
+      - SECRET_KEY=aceest-compose-secret-key-456
+      - ACEEST_DB_PATH=/app/data/aceest_fitness.db
+    volumes:
+      - aceest-data:/app/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+    networks:
+      - aceest-network
+
+  # SonarQube for Code Quality Analysis
+  sonarqube:
+    image: sonarqube:lts-community
+    container_name: aceest-sonarqube
+    restart: unless-stopped
+    ports:
+      - "9000:9000"
+    environment:
+      - SONAR_ES_BOOTSTRAP_CHECKS_DISABLE=true
+    volumes:
+      - sonarqube-data:/opt/sonarqube/data
+      - sonarqube-extensions:/opt/sonarqube/extensions
+      - sonarqube-logs:/opt/sonarqube/logs
+    networks:
+      - aceest-network
+
+  # Jenkins CI/CD Build Server
+  jenkins:
+    image: jenkins/jenkins:lts-jdk17
+    container_name: aceest-jenkins
+    restart: unless-stopped
+    privileged: true
+    user: root
+    ports:
+      - "8080:8080"
+      - "50000:50000"
+    environment:
+      - JAVA_OPTS=-Djenkins.install.runSetupWizard=false
+    volumes:
+      - jenkins-data:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - aceest-network
+
+volumes:
+  aceest-data:
+  sonarqube-data:
+  sonarqube-extensions:
+  sonarqube-logs:
+  jenkins-data:
+
+networks:
+  aceest-network:
+    driver: bridge
