@@ -5,6 +5,9 @@
 **Academic Term:** S1-25  
 **Assignment:** Assignment - 2  
 **Role:** Lead DevOps Engineer  
+**Student ID:** 2025tm93090  
+**GitHub Repository:** [https://github.com/2025tm93090/aceest-fitness-devops](https://github.com/2025tm93090/aceest-fitness-devops)  
+**Docker Hub Repository:** [https://hub.docker.com/r/2025tm93090/aceest-fitness](https://hub.docker.com/r/2025tm93090/aceest-fitness)  
 **Organization:** ACEest Fitness & Gym (Coimbatore, Tamil Nadu)  
 
 ---
@@ -184,5 +187,5 @@ The DevOps implementation for **ACEest Fitness & Gym** successfully demonstrates
 - [x] **Containerization:** Multi-stage `Dockerfile` and `docker-compose.yml` with non-root security.
 - [x] **Testing & Quality:** Pytest test suite (34 tests, 88% coverage) and `sonar-project.properties`.
 - [x] **Kubernetes Deployment Strategies:** All 5 deployment topologies (Rolling Update, Blue-Green, Canary, A/B Testing, Shadow) with rollback scripts.
-- [x] **Version Control:** Git repository initialized with structured branches (`main`, `develop`) and semantic release tags (`v1.0.0`, `v2.0.0`, `v3.0.0`).
+- [x] **Version Control:** Public GitHub repository ([https://github.com/2025tm93090/aceest-fitness-devops](https://github.com/2025tm93090/aceest-fitness-devops)) with structured branches (`main`, `develop`) and semantic release tags (`v1.0.0`, `v2.0.0`, `v3.0.0`).
 - [x] **Technical Documentation:** Detailed setup instructions in `README.md` and academic report in `DEVOPS_REPORT.md`.
