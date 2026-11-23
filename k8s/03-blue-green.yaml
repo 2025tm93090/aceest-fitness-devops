@@ -25,7 +25,7 @@ spec:
     spec:
       containers:
         - name: aceest-container
-          image: yourdockerhubuser/aceest-fitness:v1.0.0
+          image: 2025tm93090/aceest-fitness:v1.0.0
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 5000
@@ -66,7 +66,7 @@ spec:
     spec:
       containers:
         - name: aceest-container
-          image: yourdockerhubuser/aceest-fitness:v3.0.0
+          image: 2025tm93090/aceest-fitness:v3.0.0
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 5000

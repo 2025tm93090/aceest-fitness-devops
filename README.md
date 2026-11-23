@@ -124,19 +124,19 @@ pytest --cov=app --cov-report=term-missing --cov-report=xml:reports/coverage.xml
 
 ```bash
 # Build Release v1.0.0
-docker build -t yourdockerhubuser/aceest-fitness:v1.0.0 .
+docker build -t 2025tm93090/aceest-fitness:v1.0.0 .
 
 # Build Release v2.0.0
-docker build -t yourdockerhubuser/aceest-fitness:v2.0.0 .
+docker build -t 2025tm93090/aceest-fitness:v2.0.0 .
 
 # Build Release v3.0.0 and latest
-docker build -t yourdockerhubuser/aceest-fitness:v3.0.0 -t yourdockerhubuser/aceest-fitness:latest .
+docker build -t 2025tm93090/aceest-fitness:v3.0.0 -t 2025tm93090/aceest-fitness:latest .
 ```
 
 ### 4.2 Run Docker Container Locally
 
 ```bash
-docker run -d --name aceest-app -p 5000:5000 yourdockerhubuser/aceest-fitness:v3.0.0
+docker run -d --name aceest-app -p 5000:5000 2025tm93090/aceest-fitness:v3.0.0
 
 # Verify health endpoint
 curl http://localhost:5000/health
@@ -146,10 +146,10 @@ curl http://localhost:5000/health
 
 ```bash
 docker login
-docker push yourdockerhubuser/aceest-fitness:v1.0.0
-docker push yourdockerhubuser/aceest-fitness:v2.0.0
-docker push yourdockerhubuser/aceest-fitness:v3.0.0
-docker push yourdockerhubuser/aceest-fitness:latest
+docker push 2025tm93090/aceest-fitness:v1.0.0
+docker push 2025tm93090/aceest-fitness:v2.0.0
+docker push 2025tm93090/aceest-fitness:v3.0.0
+docker push 2025tm93090/aceest-fitness:latest
 ```
 
 ---
@@ -173,7 +173,7 @@ kubectl apply -f k8s/02-rolling-update.yaml
 kubectl rollout status deployment/aceest-app -n aceest-fitness
 
 # Update to a new version smoothly:
-kubectl set image deployment/aceest-app aceest-container=yourdockerhubuser/aceest-fitness:v3.0.0 -n aceest-fitness
+kubectl set image deployment/aceest-app aceest-container=2025tm93090/aceest-fitness:v3.0.0 -n aceest-fitness
 ```
 
 ### 5.3 Strategy 2: Blue-Green Deployment

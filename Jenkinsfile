@@ -17,7 +17,7 @@ pipeline {
     }
 
     environment {
-        DOCKER_HUB_REPO     = 'yourdockerhubuser/aceest-fitness'
+        DOCKER_HUB_REPO     = '2025tm93090/aceest-fitness'
         DOCKER_CREDENTIALS  = 'docker-hub-credentials'
         SONAR_SCANNER_HOME  = tool 'SonarScanner-5.0'
         KUBECONFIG_CRED_ID  = 'k8s-kubeconfig'

@@ -31,7 +31,7 @@ spec:
         fsGroup: 10001
       containers:
         - name: aceest-container
-          image: yourdockerhubuser/aceest-fitness:v3.0.0
+          image: 2025tm93090/aceest-fitness:v3.0.0
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 5000
